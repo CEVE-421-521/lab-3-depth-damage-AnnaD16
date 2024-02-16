@@ -1,7 +1,7 @@
 ---
 title: "Lab 3: Depth-Damage Models"
 subtitle: "DataFrames and Distributions"
-author: "Your Name"
+author: "Anna Delesalle, <ajd16>"
 date: 2024-01-26
 week: 3
 categories: [Lab]
@@ -57,9 +57,64 @@ Plots.default(; margin=6Plots.mm)
 ```
 
 # Site information
+Site: 8771450 Galveston Pier 21, TX
+
+Building name: Katie's Seafood House
+
+Building location: This building is adjascent to Pier 20 which is connected to Pier 21 (2000 Wharf Rd, Galveston, TX 77550)
+
+Building elevation (estimation): 
+Feet: 4.31
+Meters: 1.31
+DD: 29.31000° -94.79128°
+DMS: 29° 18' 35.995" N     94° 47' 28.626" W
+UTM: 15 326037 3243663
+USNG: 15R UN 26037 43663 (NAD 83)
+MGRS: 15RUN2603743663
 
 # Depth-Damage
+```{julia}
+haz_fl_dept = CSV.read("data/haz_fl_dept.csv", DataFrame)
+first(haz_fl_dept, 3)
+```
+
+```{julia}
+include("depthdamage.jl")
+```
+
+
+Finding a depth-damage function for this building:
+This depth-damage function is for a restaurant located in Galveston which is also the case for "Katie's Seafood House".
+
+```{julia}
+demo_row = @rsubset(
+    haz_fl_dept, :Description == "Cafeteria Restaurant, structure"
+)[
+    1, :,
+]
+dd = DepthDamageData(demo_row)
+```
+
+```{julia}
+fieldnames(typeof(dd))
+```
 
 # Expected annual damages
+```{julia}
+scatter(
+    dd.depths,
+    dd.damages;
+    xlabel="Flood Depth at House",
+    ylabel="Damage (%)",
+    label="$(dd.description) ($(dd.source))",
+    legend=:bottomright,
+    size=(700, 500),
+)
+```
+
+This plot illustrates the depth-damage curve of flooding for Katie's Seafood House in Galveston near the Pier 21 water gauge. The every foot of flooding at the restaurant the Y axis shows the percentage of damage the flooding will have. The incline of this curve is mostly steady however when flooding reaches around 10 feet above ground the restaurant is expected to experience a higher increase in damages for each extra foot of flooding. So for example, a flood depth at the restaurant of 1 foot would equivalate to 20% damage whereas 12 feet of flooding at the restaurant would likely result in 50% damage. The expected damage reaches 100% just under 30 feet of flooding at the restaurant. 
+
+Implementing the Monte Carlo algorythm:
+
 
 # Discussion
