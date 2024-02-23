@@ -119,9 +119,50 @@ This plot illustrates the depth-damage curve of flooding for Katie's Seafood Hou
 Implementing the Monte Carlo algorythm:
 
 1. Draw N random values from p(x)
-2. For each, plug in to 'damage-fn' 'damages = damages-fn.(samples)'
+2. For each, plug in to 'damage-fn' so 'damages = damage-fn.(samples)'
 3. '1/n*sum(damages)' or mean(damages)
+```{julia}
+gauge_dist = GeneralizedExtremeValue(5, 1.5, 0.1)
+quantile.(gauge_dist, [0.5, 0.9, 0.99, 0.999])
+offset = 4.31 
+house_dist = GeneralizedExtremeValue(gauge_dist.μ - offset, gauge_dist.σ, gauge_dist.ξ)
+```
+
+```{julia}
+function get_depth_damage_function(
+    depth_train::Vector{<:T}, dmg_train::Vector{<:AbstractFloat}
+) where {T<:Unitful.Length}
+
+    # interpolate
+    depth_ft = ustrip.(u"ft", depth_train)
+    interp_fn = Interpolations.LinearInterpolation(
+        depth_ft,
+        dmg_train;
+        extrapolation_bc=Interpolations.Flat(),
+    )
+
+    damage_fn = function (depth::T2) where {T2<:Unitful.Length}
+        return interp_fn(ustrip.(u"ft", depth))
+    end
+    return damage_fn 
+end
+```
+
+```{julia}
+damage_fn = get_depth_damage_function(dd.depths, dd.damages)
+```
+
+```{julia}
+samples = rand(house_dist, 1000000) .* 1u"ft"
+damages = damage_fn.(samples)
+mean(damages)
+```
+
+
+According to the Monte Carlo algorythm above the expected anual damages average out to 13.199%. This means that for 1,000,000 sample the average damage is estimated at 13.199% which allows us to infer that the annual damages for Katie's Seafood Restaurant will be similar to this number each year.
 
 # Discussion
 
 The depth-damage function that I found to represent Katie's Seafood Restaurant could be more accurate. There are not that many choices for restaurants in Galveston, and for example there are none that take into account the proximity of the building to the water gauge. In other words this depth-damage function could equally work for a restaurant in Galveston on the water as it could for a restaurant much further inland with a different elevation. 
+
+I also struggled with the implimentation of the Monte Carlo algorythm for this lab.
