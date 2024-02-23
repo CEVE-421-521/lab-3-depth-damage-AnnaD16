@@ -79,6 +79,10 @@ first(haz_fl_dept, 3)
 ```
 
 ```{julia}
+haz_fl_dept[823, :]
+```
+
+```{julia}
 include("depthdamage.jl")
 ```
 
@@ -89,9 +93,7 @@ This depth-damage function is for a restaurant located in Galveston which is als
 ```{julia}
 demo_row = @rsubset(
     haz_fl_dept, :Description == "Cafeteria Restaurant, structure"
-)[
-    1, :,
-]
+)[1, :,]
 dd = DepthDamageData(demo_row)
 ```
 
@@ -116,5 +118,10 @@ This plot illustrates the depth-damage curve of flooding for Katie's Seafood Hou
 
 Implementing the Monte Carlo algorythm:
 
+1. Draw N random values from p(x)
+2. For each, plug in to 'damage-fn' 'damages = damages-fn.(samples)'
+3. '1/n*sum(damages)' or mean(damages)
 
 # Discussion
+
+The depth-damage function that I found to represent Katie's Seafood Restaurant could be more accurate. There are not that many choices for restaurants in Galveston, and for example there are none that take into account the proximity of the building to the water gauge. In other words this depth-damage function could equally work for a restaurant in Galveston on the water as it could for a restaurant much further inland with a different elevation. 
